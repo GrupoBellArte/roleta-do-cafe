@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☕ ROLETA DO CAFÉ ☕</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        #roleta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .participante {
+            padding: 15px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .participante.selecionado {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+        .btn-sortear {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-sortear:hover {
+            background-color: #45a049;
+        }
+        #resultado {
+            font-size: 2em;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .emoji-chuva {
+            position: fixed;
+            font-size: 2em;
+            pointer-events: none;
+            animation: cair 3s linear infinite;
+        }
+        @keyframes cair {
+            to { 
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        .explosao {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            z-index: 1000;
+            animation: explodir 1s ease-out;
+        }
+        @keyframes explodir {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            70% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+        @keyframes pular {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .pulsante {
+            animation: pular 0.5s infinite alternate;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>☕ ROLETA DO CAFÉ 🎲</h1>
+        <div id="roleta">
+            <div class="participante" data-nome="Pablo">Pablo</div>
+            <div class="participante" data-nome="Alfredo">Alfredo</div>
+            <div class="participante" data-nome="Eloá">Eloá</div>
+            <div class="participante" data-nome="Carol">Carol</div>
+            <div class="participante" data-nome="Deisi">Deisi</div>
+            <div class="participante" data-nome="Karina">Karina</div>
+        </div>
+        <button class="btn-sortear" onclick="iniciarSorteio()">🎰 SORTEAR BARISTA 🍵</button>
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        const participantes = document.querySelectorAll('.participante');
+        const resultadoElement = document.getElementById('resultado');
+        const sortearBtn = document.querySelector('.btn-sortear');
+
+        function iniciarSorteio() {
+            // Desativa o botão durante o sorteio
+            sortearBtn.disabled = true;
+            sortearBtn.style.opacity = 0.5;
+
+            // Remove seleções anteriores
+            participantes.forEach(p => p.classList.remove('selecionado'));
+            limparChuvaDeEmojis();
+
+            let contador = 0;
+            const totalIteracoes = 20;
+            let ultimoSorteado = null;
+
+            const sorteioInterval = setInterval(() => {
+                // Remove destaque anterior
+                if (ultimoSorteado) {
+                    ultimoSorteado.classList.remove('selecionado');
+                }
+
+                // Seleciona próximo participante aleatório
+                const participantesDisponiveis = Array.from(participantes)
+                    .filter(p => p !== ultimoSorteado);
+                const novoSorteado = participantesDisponiveis[
+                    Math.floor(Math.random() * participantesDisponiveis.length)
+                ];
+
+                novoSorteado.classList.add('selecionado');
+                ultimoSorteado = novoSorteado;
+
+                contador++;
+
+                // Se terminou as iterações
+                if (contador >= totalIteracoes) {
+                    clearInterval(sorteioInterval);
+                    celebrarSorteado(ultimoSorteado);
+                }
+            }, 250);
+        }
+
+        function celebrarSorteado(sorteado) {
+            const nome = sorteado.dataset.nome;
+            resultadoElement.textContent = `☕ ${nome} VAI FAZER O CAFÉ! ☕`;
+            resultadoElement.style.opacity = 1;
+
+            // Reativa o botão
+            sortearBtn.disabled = false;
+            sortearBtn.style.opacity = 1;
+
+            // Chuva de emojis de café
+            for (let i = 0; i < 50; i++) {
+                criarChuvaDeEmojis();
+            }
+
+            // Explosão de celebração
+            const emojis = ['☕', '🍵', '🥤', '✨', '🎉', '🎊'];
+            const explosaoDiv = document.createElement('div');
+            explosaoDiv.classList.add('explosao');
+            explosaoDiv.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            document.body.appendChild(explosaoDiv);
+            setTimeout(() => explosaoDiv.remove(), 1000);
+
+            // Adiciona animação pulsante ao nome sorteado
+            sorteado.classList.add('pulsante');
+            setTimeout(() => sorteado.classList.remove('pulsante'), 2000);
+        }
+
+        function criarChuvaDeEmojis() {
+            const emojis = ['☕', '🍵', '🥤', '☁️', '🍩'];
+            const emoji = document.createElement('div');
+            emoji.classList.add('emoji-chuva');
+            emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            emoji.style.left = `${Math.random() * 100}%`;
+            emoji.style.animationDuration = `${Math.random() * 3 + 2}s`;
+            document.body.appendChild(emoji);
+
+            setTimeout(() => {
+                emoji.remove();
+            }, 3000);
+        }
+
+        function limparChuvaDeEmojis() {
+            document.querySelectorAll('.emoji-chuva').forEach(e => e.remove());
+        }
+    </script>
+</body>
+</html>
